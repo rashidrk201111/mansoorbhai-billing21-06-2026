@@ -422,23 +422,23 @@ export function InvoiceView({ invoiceId, onClose }: InvoiceViewProps) {
                         </tr>
                       ))}
                       <tr>
-                        <td rowSpan={3} className="py-1 px-2" style={{ borderLeft: '1px solid #000', borderBottom: '1px solid #000', borderRight: 'none', borderTop: 'none' }}>&nbsp;</td>
-                        <td rowSpan={3} className="py-1 px-2" style={{ borderLeft: 'none', borderBottom: '1px solid #000', borderRight: 'none', borderTop: 'none' }}>&nbsp;</td>
-                        <td colSpan={showGST ? 2 : 1} className="py-1 px-3 text-base font-semibold text-right" style={{ borderLeft: 'none', borderTop: '1px solid #000', borderRight: 'none', borderBottom: 'none' }}>Total</td>
-                        {!showGST && <td className="py-1 px-2 text-base text-right" style={{ borderLeft: 'none', borderTop: '1px solid #000', borderRight: 'none', borderBottom: 'none' }}>&nbsp;</td>}
-                        <td className="py-1 px-2 text-base text-right" style={{ borderLeft: 'none', borderTop: '1px solid #000', borderRight: 'none', borderBottom: 'none' }}>&nbsp;</td>
-                        <td className="py-1 px-2 text-base text-right font-semibold" style={{ borderLeft: 'none', borderTop: '1px solid #000', borderRight: '1px solid #000', borderBottom: 'none' }}>₹{invoiceData.total?.toFixed(2) || '0.00'}</td>
+                        <td rowSpan={4} className="py-1 px-2" style={{ borderLeft: '1px solid #000', borderBottom: '1px solid #000', borderRight: 'none', borderTop: 'none' }}>&nbsp;</td>
+                        <td rowSpan={4} className="py-1 px-2" style={{ borderLeft: 'none', borderBottom: '1px solid #000', borderRight: 'none', borderTop: 'none' }}>&nbsp;</td>
+                        <td className="py-1 px-3 text-base font-semibold text-center" style={{ borderLeft: 'none', borderTop: '1px solid #000', borderRight: 'none', borderBottom: 'none' }}>{items.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0)}</td>
+                        <td className="py-1 px-2 text-base font-semibold text-right" style={{ borderLeft: 'none', borderTop: '1px solid #000', borderRight: 'none', borderBottom: 'none' }}>₹{items.reduce((sum: number, item: any) => sum + (Number(item.quantity || 0) * Number(item.unit_price || 0)), 0).toFixed(2)}</td>
+                        {showGST && <td className="py-1 px-2 text-base text-right" style={{ borderLeft: 'none', borderTop: '1px solid #000', borderRight: 'none', borderBottom: 'none' }}>&nbsp;</td>}
+                        <td className="py-1 px-2 text-base text-right font-semibold" style={{ borderLeft: 'none', borderTop: '1px solid #000', borderRight: '1px solid #000', borderBottom: 'none' }}>&nbsp;</td>
                       </tr>
                       <tr>
-                        <td colSpan={showGST ? 2 : 1} className="py-1 px-3 text-base font-semibold text-right" style={{ border: 'none' }}>Advance</td>
-                        {!showGST && <td className="py-1 px-2 text-base text-right" style={{ border: 'none' }}>&nbsp;</td>}
-                        <td className="py-1 px-2 text-base text-right" style={{ border: 'none' }}>&nbsp;</td>
+                        <td colSpan={showGST ? 3 : 2} className="py-1 px-3 text-base font-semibold text-right" style={{ border: 'none' }}>Total</td>
+                        <td className="py-1 px-2 text-base text-right font-semibold" style={{ borderLeft: 'none', borderTop: 'none', borderRight: '1px solid #000', borderBottom: 'none' }}>₹{invoiceData.total?.toFixed(2) || '0.00'}</td>
+                      </tr>
+                      <tr>
+                        <td colSpan={showGST ? 3 : 2} className="py-1 px-3 text-base font-semibold text-right" style={{ border: 'none' }}>Advance</td>
                         <td className="py-1 px-2 text-base text-right" style={{ borderLeft: 'none', borderTop: 'none', borderRight: '1px solid #000', borderBottom: 'none' }}>₹{invoiceData.amount_paid?.toFixed(2) || '0.00'}</td>
                       </tr>
                       <tr>
-                        <td colSpan={showGST ? 2 : 1} className="py-1 px-3 text-base font-semibold text-right" style={{ borderLeft: 'none', borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #000' }}>Balance</td>
-                        {!showGST && <td className="py-1 px-2 text-base text-right" style={{ borderLeft: 'none', borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #000' }}>&nbsp;</td>}
-                        <td className="py-1 px-2 text-base text-right" style={{ borderLeft: 'none', borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #000' }}>&nbsp;</td>
+                        <td colSpan={showGST ? 3 : 2} className="py-1 px-3 text-base font-semibold text-right" style={{ borderLeft: 'none', borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #000' }}>Balance</td>
                         <td className="py-1 px-2 text-base text-right font-semibold" style={{ borderLeft: 'none', borderTop: 'none', borderRight: '1px solid #000', borderBottom: '1px solid #000' }}>₹{((invoiceData.total || 0) - (invoiceData.amount_paid || 0)).toFixed(2)}</td>
                       </tr>
                     </tbody>
