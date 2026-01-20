@@ -197,7 +197,7 @@ export function Invoices() {
         for (const item of invoiceItems || []) {
           const { data: product, error: productError } = await supabase
             .from('products')
-            .select('quantity')
+            .select('quantity, name')
             .eq('id', item.product_id)
             .single();
 
@@ -205,9 +205,13 @@ export function Invoices() {
 
           const newQuantity = product.quantity - item.quantity;
 
+          if (newQuantity < 0) {
+            throw new Error(`Insufficient stock for ${product.name}. Available: ${product.quantity}, Required: ${item.quantity}`);
+          }
+
           const { error: updateError } = await supabase
             .from('products')
-            .update({ quantity: newQuantity })
+            .update({ quantity: Math.max(0, newQuantity) })
             .eq('id', item.product_id);
 
           if (updateError) throw updateError;
@@ -597,9 +601,24 @@ export function Invoices() {
       const product = products.find(p => p.barcode === barcodeInput.trim());
       if (product) {
         const existingIndex = selectedItems.findIndex(item => item.product_id === product.id);
+        const currentQty = existingIndex >= 0 ? selectedItems[existingIndex].quantity : 0;
+        const newQty = currentQty + 1;
+
+        if (newQty > product.quantity) {
+          alert(`Insufficient stock for ${product.name}. Available: ${product.quantity}`);
+          setBarcodeInput('');
+          return;
+        }
+
+        if (product.quantity === 0) {
+          alert(`${product.name} is out of stock!`);
+          setBarcodeInput('');
+          return;
+        }
+
         if (existingIndex >= 0) {
           const updated = [...selectedItems];
-          updated[existingIndex].quantity += 1;
+          updated[existingIndex].quantity = newQty;
           setSelectedItems(updated);
         } else {
           setSelectedItems([...selectedItems, { product_id: product.id, quantity: 1 }]);
@@ -618,9 +637,24 @@ export function Invoices() {
       const product = products.find(p => p.sku?.toLowerCase() === skuInput.trim().toLowerCase());
       if (product) {
         const existingIndex = selectedItems.findIndex(item => item.product_id === product.id);
+        const currentQty = existingIndex >= 0 ? selectedItems[existingIndex].quantity : 0;
+        const newQty = currentQty + 1;
+
+        if (newQty > product.quantity) {
+          alert(`Insufficient stock for ${product.name}. Available: ${product.quantity}`);
+          setSkuInput('');
+          return;
+        }
+
+        if (product.quantity === 0) {
+          alert(`${product.name} is out of stock!`);
+          setSkuInput('');
+          return;
+        }
+
         if (existingIndex >= 0) {
           const updated = [...selectedItems];
-          updated[existingIndex].quantity += 1;
+          updated[existingIndex].quantity = newQty;
           setSelectedItems(updated);
         } else {
           setSelectedItems([...selectedItems, { product_id: product.id, quantity: 1 }]);
@@ -639,6 +673,22 @@ export function Invoices() {
 
   const updateItem = (index: number, field: string, value: any) => {
     const newItems = [...selectedItems];
+
+    if (field === 'quantity') {
+      const product = products.find(p => p.id === newItems[index].product_id);
+      const newQty = parseFloat(value) || 0;
+
+      if (newQty < 0) {
+        alert('Quantity cannot be negative');
+        return;
+      }
+
+      if (product && newQty > product.quantity) {
+        alert(`Insufficient stock for ${product.name}. Available: ${product.quantity}`);
+        return;
+      }
+    }
+
     newItems[index] = { ...newItems[index], [field]: value };
     setSelectedItems(newItems);
   };

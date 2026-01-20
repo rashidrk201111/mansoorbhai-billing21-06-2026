@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react';
 import { supabase, Product } from '../../lib/supabase';
-import { Plus, Search, CreditCard as Edit, Trash2, AlertTriangle, Barcode, Download } from 'lucide-react';
+import { Plus, Search, CreditCard as Edit, Trash2, AlertTriangle, Barcode, Download, X as XIcon } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatINR } from '../../lib/currency';
 import { BarcodeLabel } from '../barcode/BarcodeLabel';
+
+type StockFilter = 'all' | 'in_stock' | 'low_stock' | 'out_of_stock';
 
 export function Inventory() {
   const { profile } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [stockFilter, setStockFilter] = useState<StockFilter>('all');
   const [showModal, setShowModal] = useState(false);
   const [showBarcodeModal, setShowBarcodeModal] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -136,19 +140,51 @@ export function Inventory() {
     }
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getStockStatus = (product: Product): 'out_of_stock' | 'low_stock' | 'in_stock' => {
+    if (product.quantity === 0) return 'out_of_stock';
+    if (product.quantity <= product.reorder_level) return 'low_stock';
+    return 'in_stock';
+  };
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.sku.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (stockFilter === 'all') return true;
+
+    const status = getStockStatus(product);
+    return status === stockFilter;
+  });
 
   if (loading) {
     return <div className="text-center py-8">Loading inventory...</div>;
   }
 
   const totalItems = filteredProducts.reduce((sum, product) => sum + product.quantity, 0);
+  const outOfStockCount = products.filter(p => p.quantity === 0).length;
+  const lowStockCount = products.filter(p => p.quantity > 0 && p.quantity <= p.reorder_level).length;
+  const inStockCount = products.filter(p => p.quantity > p.reorder_level).length;
 
   return (
     <div className="space-y-6">
+      {notification && (
+        <div className="fixed top-4 right-4 z-50 max-w-md bg-red-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 animate-slide-in">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div>
+            <p className="font-semibold">Stock Alert!</p>
+            <p className="text-sm">{notification}</p>
+          </div>
+          <button
+            onClick={() => setNotification(null)}
+            className="ml-auto text-white hover:bg-red-700 rounded p-1"
+          >
+            <XIcon className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -180,7 +216,7 @@ export function Inventory() {
                   p.quantity,
                   p.unit,
                   p.reorder_level,
-                  p.quantity <= p.reorder_level ? 'Low Stock' : 'In Stock'
+                  p.quantity === 0 ? 'Out of Stock' : p.quantity <= p.reorder_level ? 'Low Stock' : 'In Stock'
                 ])
               ].map(row => row.join(',')).join('\n');
 
@@ -250,6 +286,49 @@ export function Inventory() {
         </div>
       </div>
 
+      <div className="flex gap-3 overflow-x-auto pb-2">
+        <button
+          onClick={() => setStockFilter('all')}
+          className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
+            stockFilter === 'all'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'bg-white text-slate-700 border border-slate-300 hover:border-blue-400'
+          }`}
+        >
+          All Products ({products.length})
+        </button>
+        <button
+          onClick={() => setStockFilter('in_stock')}
+          className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
+            stockFilter === 'in_stock'
+              ? 'bg-green-600 text-white shadow-md'
+              : 'bg-white text-slate-700 border border-slate-300 hover:border-green-400'
+          }`}
+        >
+          In Stock ({inStockCount})
+        </button>
+        <button
+          onClick={() => setStockFilter('low_stock')}
+          className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
+            stockFilter === 'low_stock'
+              ? 'bg-orange-600 text-white shadow-md'
+              : 'bg-white text-slate-700 border border-slate-300 hover:border-orange-400'
+          }`}
+        >
+          Low Stock ({lowStockCount})
+        </button>
+        <button
+          onClick={() => setStockFilter('out_of_stock')}
+          className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
+            stockFilter === 'out_of_stock'
+              ? 'bg-red-600 text-white shadow-md'
+              : 'bg-white text-slate-700 border border-slate-300 hover:border-red-400'
+          }`}
+        >
+          Out of Stock ({outOfStockCount})
+        </button>
+      </div>
+
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -284,8 +363,13 @@ export function Inventory() {
                     {product.quantity} <span className="text-slate-500">{product.unit}</span>
                   </td>
                   <td className="px-6 py-4">
-                    {product.quantity <= product.reorder_level ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                    {product.quantity === 0 ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-600 text-white">
+                        <AlertTriangle className="w-3 h-3" />
+                        Out of Stock
+                      </span>
+                    ) : product.quantity <= product.reorder_level ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
                         <AlertTriangle className="w-3 h-3" />
                         Low Stock
                       </span>
@@ -442,8 +526,21 @@ export function Inventory() {
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
                     value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const numValue = parseFloat(value);
+
+                      if (value === '' || numValue >= 0) {
+                        setFormData({ ...formData, quantity: value });
+
+                        if (numValue === 0 && editingProduct && editingProduct.quantity > 0) {
+                          setNotification(`${formData.name || 'Product'} stock has reached zero!`);
+                          setTimeout(() => setNotification(null), 5000);
+                        }
+                      }
+                    }}
                     required
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   />
