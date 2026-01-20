@@ -395,19 +395,20 @@ export function InvoiceView({ invoiceId, onClose }: InvoiceViewProps) {
                     <tbody>
                       {items.map((item: any, index: number) => {
                         const gstAmount = (item.cgst_amount || 0) + (item.sgst_amount || 0) + (item.igst_amount || 0);
+                        const unit = item.product?.unit || 'pcs';
                         return (
                           <tr key={item.id}>
                             <td className="py-1 px-2 text-center text-base" style={{ border: '1px solid #000', boxShadow: 'inset 0 0 0 1px #000' }}>{index + 1}</td>
                             <td className="py-1 px-3 text-base" style={{ border: '1px solid #000', boxShadow: 'inset 0 0 0 1px #000' }}>{item.product?.description || item.product?.name}</td>
-                            <td className="py-1 px-2 text-center text-base" style={{ border: '1px solid #000', boxShadow: 'inset 0 0 0 1px #000' }}>{item.quantity}</td>
-                            <td className="py-1 px-2 text-right text-base" style={{ border: '1px solid #000', boxShadow: 'inset 0 0 0 1px #000' }}>{item.unit_price}</td>
+                            <td className="py-1 px-2 text-center text-base" style={{ border: '1px solid #000', boxShadow: 'inset 0 0 0 1px #000' }}>{item.quantity} {unit}</td>
+                            <td className="py-1 px-2 text-right text-base" style={{ border: '1px solid #000', boxShadow: 'inset 0 0 0 1px #000' }}>₹{item.unit_price}</td>
                             {showGST && (
                               <td className="py-1 px-2 text-center text-base" style={{ border: '1px solid #000', boxShadow: 'inset 0 0 0 1px #000' }}>
                                 {item.gst_rate ? `${item.gst_rate}%` : '-'}
                                 {gstAmount > 0 && <div className="text-xs text-slate-600">₹{gstAmount.toFixed(2)}</div>}
                               </td>
                             )}
-                            <td className="py-1 px-2 text-right text-base" style={{ border: '1px solid #000', boxShadow: 'inset 0 0 0 1px #000' }}>{(item.quantity * item.unit_price).toFixed(2)}</td>
+                            <td className="py-1 px-2 text-right text-base" style={{ border: '1px solid #000', boxShadow: 'inset 0 0 0 1px #000' }}>₹{(item.quantity * item.unit_price).toFixed(2)}</td>
                           </tr>
                         );
                       })}
