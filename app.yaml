@@ -1,0 +1,45 @@
+runtime: custom
+env: flex
+service: billing-app-v2
+
+# This sample incurs cost to run on the App Engine flexible environment.
+# The settings below are to reduce costs during testing and are not appropriate
+# for production use. For more information, see:
+# https://cloud.google.com/appengine/docs/flexible/nodejs/configuring-your-app-with-app-yaml
+manual_scaling:
+  instances: 1
+resources:
+  cpu: 1
+  memory_gb: 0.5
+  disk_size_gb: 10
+
+# Environment variables
+env_variables:
+  NODE_ENV: production
+
+# Ensure we're using the correct port for the Node.js app
+network:
+  forwarded_ports:
+    - 8080:80
+
+# Health check configuration
+liveness_check:
+  path: "/"
+  check_interval_sec: 30
+  timeout_sec: 4
+  failure_threshold: 4
+  success_threshold: 2
+  initial_delay_sec: 300
+
+readiness_check:
+  path: "/"
+  check_interval_sec: 5
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2
+  app_start_timeout_sec: 300
+  upload: dist/index.html
+  secure: always
+
+env_variables:
+  NODE_ENV: 'production'
