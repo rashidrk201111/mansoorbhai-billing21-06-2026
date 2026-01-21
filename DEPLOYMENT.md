@@ -32,31 +32,23 @@ gcloud services enable containerregistry.googleapis.com
 
 ### Step 2: Build and Deploy
 
-```bash
-# Build the Docker image
-gcloud builds submit --tag gcr.io/YOUR-PROJECT-ID/invoice-app
-
-# Deploy to Cloud Run
-gcloud run deploy invoice-app \
-  --image gcr.io/YOUR-PROJECT-ID/invoice-app \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --port 8080
-```
-
-### Step 3: Add Environment Variables
-
-After deployment, add your Supabase credentials:
+**Important:** Your Supabase credentials are already configured in the Dockerfile and cloudbuild.yaml. If you need to change them, update these files first.
 
 ```bash
-gcloud run services update invoice-app \
-  --region us-central1 \
-  --update-env-vars VITE_SUPABASE_URL=your-supabase-url \
-  --update-env-vars VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+# Build the Docker image with environment variables
+gcloud builds submit \
+  --config cloudbuild.yaml \
+  --substitutions=_VITE_SUPABASE_URL="https://ftjukgofugzoxhvqhrez.supabase.co",_VITE_SUPABASE_ANON_KEY="your-anon-key"
 ```
 
-**Important:** Get your Supabase URL and Anon Key from your `.env` file.
+Or use the simpler approach (environment variables are already in cloudbuild.yaml):
+
+```bash
+# This will automatically use the environment variables from cloudbuild.yaml
+gcloud builds submit --config cloudbuild.yaml
+```
+
+Your app will be automatically deployed to Cloud Run with the correct environment variables.
 
 ### Step 4: Access Your App
 

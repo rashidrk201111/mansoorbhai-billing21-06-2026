@@ -15,7 +15,9 @@ resources:
 
 # Environment variables
 env_variables:
-  NODE_ENV: production
+  NODE_ENV: 'production'
+  VITE_SUPABASE_URL: 'https://ftjukgofugzoxhvqhrez.supabase.co'
+  VITE_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0anVrZ29mdWd6b3hodnFocmV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2NjQyMDksImV4cCI6MjA3NzI0MDIwOX0.j8kwtLaklvEB59X4_ir3HBGGkUmXfFbnl4M8lFC8wZM'
 
 # Ensure we're using the correct port for the Node.js app
 network:
@@ -40,6 +42,3 @@ readiness_check:
   app_start_timeout_sec: 300
   upload: dist/index.html
   secure: always
-
-env_variables:
-  NODE_ENV: 'production'

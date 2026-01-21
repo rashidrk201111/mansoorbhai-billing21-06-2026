@@ -12,6 +12,14 @@ RUN npm ci
 # Copy the rest of the application
 COPY . .
 
+# Set build arguments for environment variables
+ARG VITE_SUPABASE_URL=https://ftjukgofugzoxhvqhrez.supabase.co
+ARG VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0anVrZ29mdWd6b3hodnFocmV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2NjQyMDksImV4cCI6MjA3NzI0MDIwOX0.j8kwtLaklvEB59X4_ir3HBGGkUmXfFbnl4M8lFC8wZM
+
+# Export as environment variables for Vite
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+
 # Install serve globally
 RUN npm install -g serve
 
